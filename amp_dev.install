@@ -730,6 +730,17 @@ function amp_dev_install_create_rp_alpha() {
       'field_rp_vram' => 256,
       'field_rp_node_count' => 200,
     ]),
+    // Exercises "GPU without a per-node count" (type + vRAM populated, count
+    // blank) and "unknown node count" (node_count omitted -> em-dash, not 0).
+    _amp_dev_create_paragraph('rp_queue_spec', [
+      'field_rp_queue_name' => 'gpu-cloud',
+      'field_rp_queue_purpose' => 'Elastic GPU partition; per-node counts vary and are not reported.',
+      'field_rp_cpu_count' => 32,
+      'field_rp_cpus' => 'AMD EPYC 9004',
+      'field_rp_gpus' => 'NVIDIA H100',
+      'field_rp_gpu_vram' => 80,
+      'field_rp_vram' => 384,
+    ]),
   ];
 
   $datasets = [
