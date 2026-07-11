@@ -704,7 +704,8 @@ function amp_dev_install_create_rp_alpha() {
       'field_rp_gpus' => 'NVIDIA A100',
       'field_rp_vram' => 256,
       'field_rp_node_count' => 100,
-      'field_rp_max_wall_time' => 48,
+      // 48-hour limit, stored in minutes.
+      'field_rp_max_wall_time' => 2880,
     ]),
     _amp_dev_create_paragraph('rp_queue_spec', [
       'field_rp_queue_name' => 'gpu-large',
@@ -716,9 +717,25 @@ function amp_dev_install_create_rp_alpha() {
       'field_rp_gpus' => 'NVIDIA A100',
       'field_rp_vram' => 512,
       'field_rp_node_count' => 20,
-      // 120h limit that recent usage exceeds (some days in the 30-day window ran longer,
-      // e.g. before the limit was lowered) — demonstrates the trend crossing the max line.
-      'field_rp_max_wall_time' => 120,
+      // 120h limit (stored in minutes) that recent usage exceeds (some days in the
+      // 30-day window ran longer, e.g. before the limit was lowered) — demonstrates
+      // the trend crossing the max line.
+      'field_rp_max_wall_time' => 7200,
+    ]),
+    // Sub-hour wall-time limit: a 30-minute debug queue. Exercises fractional
+    // hours in the API (0.5) and the minutes-aware "30m" chip in the theme.
+    _amp_dev_create_paragraph('rp_queue_spec', [
+      'field_rp_queue_name' => 'debug',
+      'field_rp_queue_purpose' => 'Short-turnaround queue for interactive debugging and quick test runs.',
+      'field_rp_cpu_count' => 32,
+      'field_rp_cpus' => 'AMD EPYC 7763',
+      'field_rp_gpu_count' => 1,
+      'field_rp_gpu_vram' => 80,
+      'field_rp_gpus' => 'NVIDIA A100',
+      'field_rp_vram' => 128,
+      'field_rp_node_count' => 4,
+      // 30 minutes.
+      'field_rp_max_wall_time' => 30,
     ]),
     _amp_dev_create_paragraph('rp_queue_spec', [
       'field_rp_queue_name' => 'cpu-shared',
@@ -824,10 +841,19 @@ function amp_dev_install_create_rp_alpha() {
     'field_rp_listing' => TRUE,
     'field_domain_access' => ['amp_cyberinfrastructure_org'],
     // Mock queue metrics: gpu-standard spark_max ~60h (48h limit fits inside SVG);
+    // debug uses sub-hour values so its 30-minute (0.5h) max line renders;
     // cpu-shared included but has no max_wall_time set.
     'field_rp_queue_metrics' => json_encode([
       'updated' => '2 hours ago',
       'queues' => [
+        'debug' => [
+          'job_count' => 5100,
+          'wait_time' => 0.1,
+          'wall_time' => 0.25,
+          'daily_wait' => [0.05, 0.12, 0.08, 0.15, 0.09, 0.11, 0.07, 0.10, 0.13, 0.06, 0.14, 0.09, 0.12, 0.08, 0.10, 0.11, 0.07, 0.13, 0.09, 0.12, 0.08, 0.10, 0.14, 0.06, 0.11, 0.09, 0.12, 0.08, 0.10, 0.07],
+          // Sub-hour usage: spark_max ~0.48h, so the 0.5h (30-minute) max line sits just above the peak.
+          'daily_wall' => [0.15, 0.42, 0.28, 0.48, 0.19, 0.35, 0.22, 0.45, 0.12, 0.38, 0.25, 0.47, 0.18, 0.41, 0.21, 0.33, 0.27, 0.46, 0.16, 0.44, 0.23, 0.36, 0.29, 0.43, 0.14, 0.40, 0.26, 0.48, 0.20, 0.31],
+        ],
         'gpu-standard' => [
           'job_count' => 1250,
           'wait_time' => 2.3,
