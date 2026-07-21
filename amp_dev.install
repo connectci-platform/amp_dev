@@ -28,6 +28,7 @@ function amp_dev_install() {
   amp_dev_install_update_user_100();
   amp_dev_install_update_dummy_users();
   amp_dev_install_update_user_101();
+  amp_dev_install_create_legacy_contributor();
 
   // Create test content for Cypress tests.
   amp_dev_install_create_test_announcements();
@@ -311,6 +312,42 @@ function amp_dev_install_update_user_101() {
   $user_100->set('field_user_last_name', 'Ma');
   $user_100->set('field_institution', 'MGHPCC');
   $user_100->save();
+}
+
+/**
+ * Create the legacy_contributor fixture used by the Appverse hub tests.
+ *
+ * The appverse-hub Cypress spec seeds Collections owned by this user and
+ * asserts the contributor-side view of the hub: no owner block, no delete
+ * affordance, and a 403 when re-syncing a Collection owned by someone else.
+ * It deliberately carries no roles beyond authenticated — that role already
+ * grants 'submit appverse repo', 'create appverse_repo content', 'edit own
+ * appverse_repo content' and the contributor moderation transitions, so a
+ * plain authenticated user is exactly the shape those assertions need.
+ *
+ * Creating it here (rather than seeding it from the spec) keeps it in the
+ * database backup the CI job restores, and keeps the fixture owned by code
+ * we control instead of a real production account.
+ */
+function amp_dev_install_create_legacy_contributor() {
+  $name = 'legacy_contributor';
+
+  // Reuse the account if a previous install already created it, so a
+  // reinstall refreshes the fixture instead of failing on the unique name.
+  $existing = \Drupal::entityTypeManager()
+    ->getStorage('user')
+    ->loadByProperties(['name' => $name]);
+  $user = $existing ? reset($existing) : User::create(['name' => $name]);
+
+  $user->set('mail', 'legacy_contributor@amptesting.com');
+  // Must match CONTRIBUTOR_PASS in appverse-hub.cy.js.
+  $user->set('pass', 'cypress-fixture-2026');
+  $user->set('field_user_first_name', 'Legacy');
+  $user->set('field_user_last_name', 'Contributor');
+  $user->set('field_user_preferred_pronouns', 'they/them');
+  $user->set('field_user_bio', 'Appverse contributor fixture for Cypress tests.');
+  $user->set('status', 1);
+  $user->save();
 }
 
 /**
