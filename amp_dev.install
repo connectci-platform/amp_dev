@@ -29,6 +29,7 @@ function amp_dev_install() {
   amp_dev_install_update_dummy_users();
   amp_dev_install_update_user_101();
   amp_dev_install_create_legacy_contributor();
+  amp_dev_install_create_test_users();
 
   // Create test content for Cypress tests.
   amp_dev_install_create_test_announcements();
@@ -348,6 +349,59 @@ function amp_dev_install_create_legacy_contributor() {
   $user->set('field_user_bio', 'Appverse contributor fixture for Cypress tests.');
   $user->set('status', 1);
   $user->save();
+}
+
+/**
+ * Create the shared authenticated/administrator test users for Cypress.
+ *
+ * These two accounts back cy.loginAs('authenticated@amptesting.com' / '...
+ * administrator@amptesting.com') across the suite. They are given a first/last
+ * name and an organization so they look like a normally-registered user
+ * (field_access_organization is required at registration), which keeps tests
+ * that submit user or webform forms as these accounts from hitting missing
+ * required-field errors — and means those tests never have to mutate the shared
+ * fixture themselves.
+ */
+function amp_dev_install_create_test_users() {
+  // '4300' is the ID for 'MGHPCC'.
+  $test_users = [
+    [
+      'name' => 'authenticated_test_user',
+      'mail' => 'authenticated@amptesting.com',
+      'pass' => '6%l7iF}6(4tI',
+      'first_name' => 'Authenticated',
+      'last_name' => 'Testuser',
+      'roles' => [],
+    ],
+    [
+      'name' => 'administrator_test_user',
+      'mail' => 'administrator@amptesting.com',
+      'pass' => 'b8QW]X9h7#5n',
+      'first_name' => 'Administrator',
+      'last_name' => 'Testuser',
+      'roles' => ['administrator'],
+    ],
+  ];
+
+  foreach ($test_users as $data) {
+    // Reuse the account if a previous install already created it, so a
+    // reinstall refreshes the fixture instead of failing on the unique name.
+    $existing = \Drupal::entityTypeManager()
+      ->getStorage('user')
+      ->loadByProperties(['name' => $data['name']]);
+    $user = $existing ? reset($existing) : User::create(['name' => $data['name']]);
+
+    $user->set('mail', $data['mail']);
+    $user->set('pass', $data['pass']);
+    $user->set('field_user_first_name', $data['first_name']);
+    $user->set('field_user_last_name', $data['last_name']);
+    $user->set('field_access_organization', ['4300']);
+    $user->set('status', 1);
+    foreach ($data['roles'] as $role) {
+      $user->addRole($role);
+    }
+    $user->save();
+  }
 }
 
 /**
