@@ -402,6 +402,13 @@ function amp_dev_install_create_test_users() {
     foreach ($data['roles'] as $role) {
       $user->addRole($role);
     }
+    // Opt this user out of pathauto so it never regenerates a display-name
+    // based alias. Without this, pathauto (update_action: create new, leave
+    // old) would add a second, competing alias on every later save of the
+    // account, leaving the explicit pin below in place but accumulating cruft.
+    if ($user->hasField('path')) {
+      $user->path->pathauto = 0;
+    }
     $user->save();
 
     // Pin the path alias explicitly. Pathauto derives the user alias from the
