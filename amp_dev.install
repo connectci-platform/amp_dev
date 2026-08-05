@@ -372,6 +372,7 @@ function amp_dev_install_create_test_users() {
       'first_name' => 'Authenticated',
       'last_name' => 'Testuser',
       'roles' => [],
+      'alias' => '/user/authenticatedtestuser',
     ],
     [
       'name' => 'administrator_test_user',
@@ -380,6 +381,7 @@ function amp_dev_install_create_test_users() {
       'first_name' => 'Administrator',
       'last_name' => 'Testuser',
       'roles' => ['administrator'],
+      'alias' => '/user/administratortestuser',
     ],
   ];
 
@@ -401,6 +403,22 @@ function amp_dev_install_create_test_users() {
       $user->addRole($role);
     }
     $user->save();
+
+    // Pin the path alias explicitly. Pathauto derives the user alias from the
+    // display name, so giving these accounts a first/last name changes the
+    // generated alias (e.g. "Authenticated Testuser" -> authenticated-testuser).
+    // Tests reference the stable /user/<name-without-underscores> form, so set
+    // that alias directly and remove any pathauto-generated one for this user.
+    $system_path = '/user/' . $user->id();
+    $alias_storage = \Drupal::entityTypeManager()->getStorage('path_alias');
+    foreach ($alias_storage->loadByProperties(['path' => $system_path]) as $old_alias) {
+      $old_alias->delete();
+    }
+    $alias_storage->create([
+      'path' => $system_path,
+      'alias' => $data['alias'],
+      'langcode' => 'en',
+    ])->save();
   }
 }
 
