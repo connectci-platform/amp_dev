@@ -159,7 +159,7 @@ function amp_dev_install_update_dummy_users() {
       'field_access_organization' => ['4300'],
       'name' => 'test_pecan_pie',
       'preferred_pronouns' => 'they/them',
-      'bio' => 'I am a pie',
+      'bio' => '<p>I am a research computing facilitator supporting HPC users across several campuses. My work spans allocations, onboarding, and training for new PI groups.</p><p>Before this role I administered a mid-size cluster and maintained the scientific software stack. I still contribute documentation and the occasional module file.</p><p>Outside of work I mentor students getting started with parallel computing and cloud workflows.</p>',
       'email' => 'pecan@pie.org',
       'roles' => ['campuschampionsadmin', 'ccmnet_pm'],
       'affinity_group' => ['DELTA', 'Rockfish'],
@@ -382,6 +382,7 @@ function amp_dev_install_create_test_users() {
       'last_name' => 'Testuser',
       'roles' => ['administrator'],
       'alias' => '/user/administratortestuser',
+      'bio' => '<p>I administer the ACCESS test environment and coordinate the facilitation team across partner campuses. My work covers onboarding, allocations, and training.</p><p>I maintain the scientific software stack and the documentation that goes with it, and I still write the occasional module file when a gateway needs one.</p><p>Reach me during weekly office hours for help getting started on the cluster.</p>',
     ],
   ];
 
@@ -408,6 +409,9 @@ function amp_dev_install_create_test_users() {
     // account, leaving the explicit pin below in place but accumulating cruft.
     if ($user->hasField('path')) {
       $user->path->pathauto = 0;
+    }
+    if (!empty($data['bio'])) {
+      $user->set('field_user_bio', $data['bio']);
     }
     $user->save();
 
@@ -912,7 +916,7 @@ function amp_dev_install_create_rp_alpha() {
     'field_cider_latest_status' => 'production',
     'field_access_org_name' => 'Test University',
     'field_rp_description' => [
-      'value' => '<p>Test Resource Alpha is a powerful GPU-accelerated supercomputer funded by a $10 million NSF grant, designed for a broad range of scientific and engineering workloads from traditional HPC simulation to AI and machine learning research.</p><p>Researchers can access Alpha through standard HPC interfaces including Open OnDemand (OOD) and JupyterHub, enabling both command-line and browser-based workflows.</p>',
+      'value' => '<h3>Overview</h3><p>Test Resource Alpha is a powerful GPU-accelerated supercomputer funded by a $10 million NSF grant, designed for a broad range of scientific and engineering workloads from traditional HPC simulation to AI and machine learning research.</p><ul><li>GPU partitions: standard and shared</li><li>Storage tiers: home, scratch, and project</li></ul><p>Researchers can access Alpha through standard HPC interfaces including Open OnDemand (OOD) and JupyterHub, enabling both command-line and browser-based workflows.</p><p>Consult the scheduler notes and queue limits before submitting large jobs, and review the software module list for available toolchains.</p>',
       'summary' => 'GPU-accelerated supercomputer for HPC, AI, and machine learning workloads.',
       'format' => 'full_html',
     ],
