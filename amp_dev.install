@@ -159,7 +159,7 @@ function amp_dev_install_update_dummy_users() {
       'field_access_organization' => ['4300'],
       'name' => 'test_pecan_pie',
       'preferred_pronouns' => 'they/them',
-      'bio' => 'I am a pie',
+      'bio' => '<p>I am a research computing facilitator supporting HPC users across several campuses. My work spans allocations, onboarding, and training for new PI groups.</p><p>Before this role I administered a mid-size cluster and maintained the scientific software stack. I still contribute documentation and the occasional module file.</p><p>Outside of work I mentor students getting started with parallel computing and cloud workflows.</p>',
       'email' => 'pecan@pie.org',
       'roles' => ['campuschampionsadmin', 'ccmnet_pm'],
       'affinity_group' => ['DELTA', 'Rockfish'],
@@ -382,6 +382,7 @@ function amp_dev_install_create_test_users() {
       'last_name' => 'Testuser',
       'roles' => ['administrator'],
       'alias' => '/user/administratortestuser',
+      'bio' => '<p>I administer the ACCESS test environment and coordinate the facilitation team across partner campuses. My work covers onboarding, allocations, and training.</p><p>I maintain the scientific software stack and the documentation that goes with it, and I still write the occasional module file when a gateway needs one.</p><p>Reach me during weekly office hours for help getting started on the cluster.</p>',
     ],
   ];
 
@@ -408,6 +409,9 @@ function amp_dev_install_create_test_users() {
     // account, leaving the explicit pin below in place but accumulating cruft.
     if ($user->hasField('path')) {
       $user->path->pathauto = 0;
+    }
+    if (!empty($data['bio'])) {
+      $user->set('field_user_bio', $data['bio']);
     }
     $user->save();
 
@@ -912,7 +916,7 @@ function amp_dev_install_create_rp_alpha() {
     'field_cider_latest_status' => 'production',
     'field_access_org_name' => 'Test University',
     'field_rp_description' => [
-      'value' => '<p>Test Resource Alpha is a powerful GPU-accelerated supercomputer funded by a $10 million NSF grant, designed for a broad range of scientific and engineering workloads from traditional HPC simulation to AI and machine learning research.</p><p>Researchers can access Alpha through standard HPC interfaces including Open OnDemand (OOD) and JupyterHub, enabling both command-line and browser-based workflows.</p>',
+      'value' => '<h3>Overview</h3><p>Test Resource Alpha is a powerful GPU-accelerated supercomputer funded by a $10 million NSF grant, designed for a broad range of scientific and engineering workloads from traditional HPC simulation to AI and machine learning research.</p><ul><li>GPU partitions: standard and shared</li><li>Storage tiers: home, scratch, and project</li></ul><p>Researchers can access Alpha through standard HPC interfaces including Open OnDemand (OOD) and JupyterHub, enabling both command-line and browser-based workflows.</p><p>Consult the scheduler notes and queue limits before submitting large jobs, and review the software module list for available toolchains.</p>',
       'summary' => 'GPU-accelerated supercomputer for HPC, AI, and machine learning workloads.',
       'format' => 'full_html',
     ],
@@ -1103,8 +1107,32 @@ function amp_dev_install_create_rp_gamma() {
     'field_cider_latest_status' => 'production',
     'field_access_org_name' => 'Gamma Research Institute',
     'field_rp_description' => [
-      'value' => '<p>Test Resource Gamma is a mixed-use cluster with partial documentation. It has storage information but no login, file transfer, or queue data — useful for testing how the template renders when some sections are empty.</p>',
-      'summary' => 'Mixed-use cluster with partial documentation.',
+      'value' => '<h3>Overview</h3><p>Test Resource Gamma is a mixed-use cluster spanning CPU and GPU partitions, built for a broad range of research computing workloads from batch simulation to interactive analysis and machine learning. It is documented across every section so each intro can be exercised.</p><p>Gamma is funded through a multi-institution consortium and prioritizes reproducible, well-documented workflows. New projects are onboarded through a facilitation team that pairs each group with a research computing facilitator for the first allocation cycle.</p><ul><li>Partitions: cpu-standard, cpu-large, gpu-shared, gpu-a100</li><li>Interfaces: SSH, Open OnDemand, JupyterHub</li><li>Storage tiers: home, scratch, project, and archive</li></ul><p>Read the section documentation below before submitting jobs; the intro of every section here is intentionally long so the read-more clamp can be verified across the whole page. This last sentence about the consortium governance model is the part that stays hidden until you expand the overview.</p>',
+      'summary' => 'Mixed-use cluster, fully documented across sections.',
+      'format' => 'full_html',
+    ],
+    'field_rp_login_text' => [
+      'value' => '<h3>Signing in to Gamma</h3><p>Access to Gamma requires an active allocation and an ACCESS ID. Once your public key is registered in the portal, the login nodes are reachable over SSH; browser-based access is available through Open OnDemand and JupyterHub for users who prefer not to work from a terminal.</p><p>Multi-factor authentication is enforced on every interactive session. First-time users should complete the security onboarding and register a second factor before attempting to connect, otherwise the login node will reject the session.</p><ul><li>SSH: ssh &lt;username&gt;@login.gamma.example.edu</li><li>OnDemand: https://ondemand.gamma.example.edu</li><li>JupyterHub: https://jupyter.gamma.example.edu</li></ul><p>If your connection is refused after key registration, wait a few minutes for propagation. This closing note about troubleshooting stale key caches is the login text that stays hidden until you expand this section.</p>',
+      'format' => 'full_html',
+    ],
+    'field_rp_storage_text' => [
+      'value' => '<h3>Storage overview</h3><p>Gamma provides four storage tiers, each with different performance, retention, and backup characteristics. Home is small and backed up nightly for configuration and source; scratch is large and fast but purged; project is the shared working space for a group; archive is cold, high-capacity, and intended for long-term retention of finished datasets.</p><p>Quota is enforced on both capacity and inode count. Jobs that write millions of small files should target scratch rather than home, and groups approaching their project quota should request an increase before the allocation review rather than at submission time.</p><ul><li>Home: 50 GB, nightly backup</li><li>Scratch: 5 TB, purged after 60 days idle</li><li>Project: per-allocation, weekly snapshot</li><li>Archive: request-based, no compute access</li></ul><p>Consult the data-management guidance before staging large inputs. This final line about the tape-archive retrieval SLA is the storage text hidden behind read-more.</p>',
+      'format' => 'full_html',
+    ],
+    'field_rp_file_transfer_text' => [
+      'value' => '<h3>Moving data to and from Gamma</h3><p>For anything beyond a few gigabytes, use Globus rather than scp — it handles restarts, checksums, and parallel streams automatically, and the Gamma endpoint is tuned for the campus science DMZ. Small config files and scripts are fine over scp or rsync directly to the login nodes.</p><p>Transfers into scratch are fastest; transfers into project space are throttled to protect the shared filesystem during business hours. Schedule very large migrations overnight when possible, and verify checksums on arrival for anything you intend to delete from the source.</p><ul><li>Recommended: Globus (endpoint gamma#dtn)</li><li>Small files: scp / rsync to login nodes</li><li>Avoid: browser uploads for multi-GB datasets</li></ul><p>Contact the facilitation team to arrange a dedicated data-transfer node for sustained multi-terabyte moves. This note about the reserved DTN request process is the file-transfer text hidden behind read-more.</p>',
+      'format' => 'full_html',
+    ],
+    'field_rp_jobs_info' => [
+      'value' => '<h3>Running jobs on Gamma</h3><p>Gamma uses Slurm for scheduling. Interactive work belongs in a short debug allocation or an OnDemand session; production work should be submitted as batch scripts with explicit resource requests so the scheduler can pack the cluster efficiently. Always request only the walltime you need — over-requesting delays your own start time.</p><p>The gpu-a100 partition is in high demand; jobs there should checkpoint so they can be requeued if preempted. CPU-only work should target cpu-standard unless it genuinely needs the large-memory nodes, which are a limited and shared resource.</p><ul><li>Submit: sbatch myjob.slurm</li><li>Interactive: salloc -p debug -t 30</li><li>Monitor: squeue --me</li></ul><p>Review the queue limits before submitting large arrays. This closing paragraph about fair-share accounting and how priority decays over a billing cycle is the jobs text hidden behind read-more.</p>',
+      'format' => 'full_html',
+    ],
+    'field_rp_datasets_text' => [
+      'value' => '<h3>Hosted datasets</h3><p>Gamma hosts several reference datasets locally so groups do not each re-download and re-store large public corpora. These live in a read-only shared mount and do not count against your project quota. Access is granted per allocation; some datasets carry usage terms that must be acknowledged before the mount is enabled for your group.</p><p>If you rely on a public dataset that is not yet hosted, request it through the facilitation team — if several groups need the same data, hosting it centrally saves everyone storage and download time. Include the expected size and the license in the request.</p><ul><li>ImageNet-1K (read-only, terms apply)</li><li>Common Crawl monthly snapshots</li><li>Reference genomes (GRCh38, GRCm39)</li></ul><p>Check the dataset catalog for the full list and mount paths. This final note about the dataset request review cadence is the datasets text hidden behind read-more.</p>',
+      'format' => 'full_html',
+    ],
+    'field_rp_external_storage' => [
+      'value' => '<h3>Getting more storage</h3><p>When a project outgrows its on-cluster allocation, Gamma integrates with the consortium object store and with campus and national archive services for long-term retention. These are billed separately from compute and are intended for data you need to keep but do not actively compute against.</p><p>The object store is S3-compatible and reachable from the data-transfer nodes; the national archive is appropriate for finished, published datasets that must be retained for a funding-mandated period. The facilitation team can help you choose the right tier and estimate cost.</p><ul><li>Consortium object store (S3-compatible)</li><li>Campus archive (tape, retrieval SLA applies)</li><li>National long-term repository (published data)</li></ul><p>Plan retention before you generate the data, not after. This closing line about cost recovery and the annual storage true-up is the external-storage text hidden behind read-more.</p>',
       'format' => 'full_html',
     ],
     'field_rp_mfa_required' => TRUE,
