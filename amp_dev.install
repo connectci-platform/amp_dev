@@ -34,6 +34,7 @@ function amp_dev_install() {
   // Create test content for Cypress tests.
   amp_dev_install_create_test_announcements();
   amp_dev_install_create_test_events();
+  amp_dev_install_create_test_mentorship();
   amp_dev_install_create_rp_docs_test_data();
   amp_dev_install_create_rp_account_test_data();
 
@@ -384,6 +385,33 @@ function amp_dev_install_create_test_users() {
       'alias' => '/user/administratortestuser',
       'bio' => '<p>I administer the ACCESS test environment and coordinate the facilitation team across partner campuses. My work covers onboarding, allocations, and training.</p><p>I maintain the scientific software stack and the documentation that goes with it, and I still write the occasional module file when a gateway needs one.</p><p>Reach me during weekly office hours for help getting started on the cluster.</p>',
     ],
+    [
+      'name' => 'test_mentorship_admin',
+      'mail' => 'mentorship_admin@amptesting.com',
+      'pass' => 'Zt7#mR2vK9x!',
+      'first_name' => 'Mentorship',
+      'last_name' => 'Admin',
+      'roles' => ['champions_mentorship_admin'],
+      'alias' => '/user/testmentorshipadmin',
+    ],
+    [
+      'name' => 'test_ccmnet_pm_only',
+      'mail' => 'ccmnet_pm_only@amptesting.com',
+      'pass' => 'Qw3$nL8pJ5z@',
+      'first_name' => 'Ccmnet',
+      'last_name' => 'Pmonly',
+      'roles' => ['ccmnet_pm'],
+      'alias' => '/user/testccmnetpmonly',
+    ],
+    [
+      'name' => 'test_cc_admin',
+      'mail' => 'cc_admin@amptesting.com',
+      'pass' => 'Hp6!wD4tB1s%',
+      'first_name' => 'Campus',
+      'last_name' => 'Champsadmin',
+      'roles' => ['campuschampionsadmin'],
+      'alias' => '/user/testccadmin',
+    ],
   ];
 
   foreach ($test_users as $data) {
@@ -431,6 +459,60 @@ function amp_dev_install_create_test_users() {
       'langcode' => 'en',
     ])->save();
   }
+}
+
+/**
+ * Creates a published Campus Champions AI mentorship for the cc-status view
+ * test, on the ccmnet domain, so the access test does not depend on prod
+ * mentorship content or the roles of prod accounts.
+ */
+function amp_dev_install_create_test_mentorship() {
+  $term_storage = \Drupal::entityTypeManager()->getStorage('taxonomy_term');
+
+  // The cc-status page (mentorship_status:page_2) filters, via
+  // ccmnet_views_pre_view(), on the program term resolved BY NAME. The fixture
+  // must carry the same term or the listing is empty.
+  $program = $term_storage->loadByProperties([
+    'name' => 'Campus Champions AI Mentorship',
+    'vid' => 'mentorship_programs',
+  ]);
+  if (!$program) {
+    throw new \RuntimeException('amp_dev: mentorship_programs term "Campus Champions AI Mentorship" not found; cc-status fixture would be invisible.');
+  }
+  $program_tid = reset($program)->id();
+
+  // An existing "state" term the page_2 exposed filter default admits
+  // (Recruiting/Reviewing/In Progress/Finishing Up/In Progress and Recruiting).
+  $state = $term_storage->loadByProperties(['name' => 'In Progress', 'vid' => 'state']);
+  $state_tid = $state ? reset($state)->id() : NULL;
+
+  // An existing tag (field_tags is auto_create:false + required).
+  $tag = $term_storage->loadByProperties(['name' => 'ai', 'vid' => 'tags']);
+  $tag_tid = $tag ? reset($tag)->id() : NULL;
+
+  $title = '[CC-AI] AMP Test Mentorship';
+  $existing = \Drupal::entityTypeManager()->getStorage('node')
+    ->loadByProperties(['title' => $title, 'type' => 'mentorship_engagement']);
+  $node = $existing ? reset($existing) : \Drupal\node\Entity\Node::create([
+    'type' => 'mentorship_engagement',
+    'title' => $title,
+  ]);
+
+  $node->set('status', 1);
+  $node->set('field_domain_access', ['ccmnet_org']);
+  $node->set('field_mentorship_program', [$program_tid]);
+  if ($state_tid) {
+    $node->set('field_me_state', [$state_tid]);
+  }
+  if ($tag_tid) {
+    $node->set('field_tags', [$tag_tid]);
+  }
+  $node->set('field_me_looking_for', 'mentor');
+  $node->set('body', [
+    'value' => 'Fixture mentorship for the cc-status access test.',
+    'format' => 'basic_html',
+  ]);
+  $node->save();
 }
 
 /**
