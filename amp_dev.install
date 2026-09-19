@@ -1220,6 +1220,7 @@ function amp_dev_install_create_rp_gamma() {
     'status' => 1,
     'field_cider_resource_id' => $resource_id,
     'field_cider_short_name' => 'Gamma',
+    'field_rp_display_name' => 'Gamma AI System',
     'field_access_global_resource_id' => 'gamma.test.access-ci.org',
     'field_cider_resource_type' => 'Compute',
     'field_cider_latest_status' => 'production',
