@@ -896,9 +896,12 @@ function amp_dev_install_create_rp_alpha() {
   ];
 
   $queues = [
+    // Multi-row queue group, row 1: purpose and max wall time match the
+    // second gpu-standard row below, so both should hoist to the group
+    // heading (purpose text + "limit 48h").
     _amp_dev_create_paragraph('rp_queue_spec', [
       'field_rp_queue_name' => 'gpu-standard',
-      'field_rp_queue_purpose' => 'General purpose GPU jobs with up to 4 A100 GPUs per node.',
+      'field_rp_queue_purpose' => 'General purpose GPU jobs with up to 4 GPUs per node.',
       'field_rp_cpu_count' => 64,
       'field_rp_cpus' => 'AMD EPYC 7763',
       'field_rp_gpu_count' => 4,
@@ -906,6 +909,22 @@ function amp_dev_install_create_rp_alpha() {
       'field_rp_gpus' => 'NVIDIA A100',
       'field_rp_vram' => 256,
       'field_rp_node_count' => 100,
+      // 48-hour limit, stored in minutes.
+      'field_rp_max_wall_time' => 2880,
+    ]),
+    // Multi-row queue group, row 2: same purpose and max wall time as row 1
+    // above (different hardware), confirming the hoist applies across rows
+    // rather than just matching a single row.
+    _amp_dev_create_paragraph('rp_queue_spec', [
+      'field_rp_queue_name' => 'gpu-standard',
+      'field_rp_queue_purpose' => 'General purpose GPU jobs with up to 4 GPUs per node.',
+      'field_rp_cpu_count' => 112,
+      'field_rp_cpus' => 'Intel Xeon Platinum 8480+',
+      'field_rp_gpu_count' => 4,
+      'field_rp_gpu_vram' => 80,
+      'field_rp_gpus' => 'NVIDIA H100',
+      'field_rp_vram' => 2048,
+      'field_rp_node_count' => 25,
       // 48-hour limit, stored in minutes.
       'field_rp_max_wall_time' => 2880,
     ]),
@@ -923,6 +942,23 @@ function amp_dev_install_create_rp_alpha() {
       // 30-day window ran longer, e.g. before the limit was lowered) — demonstrates
       // the trend crossing the max line.
       'field_rp_max_wall_time' => 7200,
+    ]),
+    // Multi-row queue group with a per-row purpose and differing max wall
+    // times: purposes and limits differ from the gpu-large row above, so
+    // nothing hoists to the heading and each hardware row carries its own
+    // purpose and "limit" (120h vs 72h).
+    _amp_dev_create_paragraph('rp_queue_spec', [
+      'field_rp_queue_name' => 'gpu-large',
+      'field_rp_queue_purpose' => 'Full-node jobs on the newer H100 partition.',
+      'field_rp_cpu_count' => 112,
+      'field_rp_cpus' => 'Intel Xeon Platinum 8480+',
+      'field_rp_gpu_count' => 8,
+      'field_rp_gpu_vram' => 80,
+      'field_rp_gpus' => 'NVIDIA H100',
+      'field_rp_vram' => 2048,
+      'field_rp_node_count' => 16,
+      // 72-hour limit, stored in minutes.
+      'field_rp_max_wall_time' => 4320,
     ]),
     // Sub-hour wall-time limit: a 30-minute debug queue. Exercises fractional
     // hours in the API (0.5) and the minutes-aware "30m" chip in the theme.
