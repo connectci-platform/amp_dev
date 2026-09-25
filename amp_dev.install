@@ -1076,6 +1076,13 @@ function amp_dev_install_create_rp_alpha() {
       'uri' => 'https://alpha.test.example.edu/software',
       'title' => 'View all available software',
     ],
+    // One per-section documentation link, so the API's documentation_links
+    // object has a non-null value to assert against. The other eleven keys
+    // stay null, which is the common case and worth covering too.
+    'field_rp_ssh_login_link' => [
+      'uri' => 'https://alpha.test.example.edu/docs/ssh',
+      'title' => 'SSH documentation',
+    ],
     'field_rp_listing' => TRUE,
     'field_domain_access' => ['amp_cyberinfrastructure_org'],
     // Mock queue metrics: gpu-standard spark_max ~60h (48h limit fits inside SVG);
