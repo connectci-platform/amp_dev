@@ -167,3 +167,34 @@ describe('RP account panel — populated', () => {
 ```
 
 The fixture data is seeded by `amp_dev_install_create_rp_account_test_data()` in `amp_dev.install`.
+
+## PA Science Manager Fixture (D8-2892)
+
+`pascience_manager@amptesting.com` (`test_pascience_manager`) holds the
+`pascience_manager` role and nothing else, so tests of manager-only behaviour
+run as a real manager instead of as `administrator@amptesting.com`, who is
+allowed everything and would pass an allow-case test without exercising the
+role.
+
+Delete access for project submissions is granted by holding the role rather
+than by a permission (`ProjectSubmissionDeleteAccess` reads the account's
+roles), and the Project Submissions listing grants view access by the same
+role, so the role alone is the whole fixture.
+
+### Using the fixture in Cypress tests
+
+```javascript
+describe('project submission delete — as a manager', () => {
+  beforeEach(() => {
+    cy.loginUser('pascience_manager@amptesting.com', 'Vn4^kT7qM2d#');
+  });
+
+  it('can delete a PA Science project', () => {
+    cy.visit('/project-submissions');
+    // The Delete link renders only for projects this role may delete.
+  });
+});
+```
+
+The account is created by `amp_dev_install_create_test_users()` in
+`amp_dev.install`, alongside the other shared test users.

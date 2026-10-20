@@ -412,6 +412,23 @@ function amp_dev_install_create_test_users() {
       'roles' => ['campuschampionsadmin'],
       'alias' => '/user/testccadmin',
     ],
+    // A non-admin PA Science Manager. Project-submission delete access is
+    // granted by holding this role (ProjectSubmissionDeleteAccess keys on the
+    // account's roles, not a permission), and the Project Submissions listing
+    // grants view access by the same role, so the role alone is the whole
+    // fixture. Without a non-admin account that holds it, a test of
+    // manager-only behaviour has to fall back to administrator, who is allowed
+    // everything — so the denial half never runs and the allow half proves
+    // nothing about the role.
+    [
+      'name' => 'test_pascience_manager',
+      'mail' => 'pascience_manager@amptesting.com',
+      'pass' => 'Vn4^kT7qM2d#',
+      'first_name' => 'Pascience',
+      'last_name' => 'Manager',
+      'roles' => ['pascience_manager'],
+      'alias' => '/user/testpasciencemanager',
+    ],
   ];
 
   foreach ($test_users as $data) {
@@ -429,6 +446,13 @@ function amp_dev_install_create_test_users() {
     $user->set('field_access_organization', ['4300']);
     $user->set('status', 1);
     foreach ($data['roles'] as $role) {
+      // addRole() accepts an id that no role config provides, and save() does
+      // not reject it either, so a renamed or missing role would quietly
+      // produce a fixture that holds nothing. Tests would then fail wherever
+      // the account is used rather than here, where the cause is obvious.
+      if (!\Drupal::entityTypeManager()->getStorage('user_role')->load($role)) {
+        throw new \RuntimeException(sprintf('amp_dev: role "%s" does not exist; fixture user "%s" would be created without it.', $role, $data['name']));
+      }
       $user->addRole($role);
     }
     // Opt this user out of pathauto so it never regenerates a display-name
