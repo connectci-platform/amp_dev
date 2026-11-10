@@ -825,12 +825,14 @@ function amp_dev_install_index_test_content() {
  *
  * Alpha has full documentation (SSH, file transfer, storage, queues, datasets,
  * software). Beta is minimal (title + description only). Gamma is partial
- * (storage + support links, no login/transfer/queue data).
+ * (storage + support links, no login/transfer/queue data). Delta-NoCider has
+ * no CiDeR or global resource ID (like the real Fabric/Sage resources).
  */
 function amp_dev_install_create_rp_docs_test_data() {
   amp_dev_install_create_rp_alpha();
   amp_dev_install_create_rp_beta();
   amp_dev_install_create_rp_gamma();
+  amp_dev_install_create_rp_no_cider();
   amp_dev_install_create_rp_resource_group();
   \Drupal::logger('amp_dev.install')->notice('Scaffolded RP documentation test data');
 }
@@ -1288,6 +1290,51 @@ function amp_dev_install_create_rp_gamma() {
   $node->save();
 
   \Drupal::logger('amp_dev.install')->notice('Created Test Resource Gamma (nid: ' . $node->id() . ')');
+}
+
+/**
+ * Test Resource Delta-NoCider — no CiDeR ID or global resource ID.
+ *
+ * Mirrors resources such as Fabric and Sage that have no CiDeR record, so the
+ * API must identify them by nid rather than resource_id.
+ */
+function amp_dev_install_create_rp_no_cider() {
+  $title = 'Test Resource Delta-NoCider';
+  $values = [
+    'type' => 'access_active_resources_from_cid',
+    'title' => $title,
+    'status' => 1,
+    'field_rp_description' => [
+      'value' => '<p>Test Resource Delta-NoCider has no CiDeR resource ID and no global resource ID. It exists to verify that the API can serve a resource by node ID.</p>',
+      'format' => 'full_html',
+    ],
+    'field_rp_listing' => TRUE,
+    'field_domain_access' => ['amp_cyberinfrastructure_org'],
+  ];
+
+  $nids = \Drupal::entityTypeManager()
+    ->getStorage('node')
+    ->getQuery()
+    ->condition('type', 'access_active_resources_from_cid')
+    ->condition('title', $title)
+    ->accessCheck(FALSE)
+    ->range(0, 1)
+    ->execute();
+
+  if ($nids) {
+    $node = Node::load(reset($nids));
+    foreach ($values as $key => $value) {
+      if ($key !== 'type') {
+        $node->set($key, $value);
+      }
+    }
+  }
+  else {
+    $node = Node::create($values);
+  }
+  $node->save();
+
+  \Drupal::logger('amp_dev.install')->notice('Created ' . $title . ' (nid: ' . $node->id() . ')');
 }
 
 /**
