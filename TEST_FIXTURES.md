@@ -134,6 +134,17 @@ To update the fixtures:
 - Dates for events are relative (+1 week, +2 weeks, etc.) to ensure they're always in the future
 - The fixtures check for existing content by title and delete it before recreating to avoid duplicates
 
+## RP Section Inheritance Fixtures (D8-2975)
+
+Created by `amp_dev_install_create_rp_inheritance_fixture()`, which the Cypress `resource-api` spec also calls through `drush php:eval` so it does not depend on the nightly DB artifact. Both functions are safe to re-run.
+
+| Title | Type | Purpose |
+|-------|------|---------|
+| Test Resource Delta (`test-delta-9996`) | Resource | Owns one storage row only: no login, file transfer, datasets, queue specs, or software |
+| Test Inheritance Group | Resource Group | Delta is the sole member. Has one file transfer method and `field_rp_datasets_text` |
+
+Delta gets `file_transfer` and `datasets` only from its group, so `GET /api/1.0/resource-groups` must list `populated_sections` as `file_transfer`, `storage`, `datasets` for the group. Gamma stays ungrouped on purpose; other tests depend on that.
+
 ## RP Account Panel Fixtures (D8-2719)
 
 `walnut@pie.org` (uid 199) has pre-seeded data for the RP account sidebar panel:
