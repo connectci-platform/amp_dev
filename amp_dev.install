@@ -821,17 +821,20 @@ function amp_dev_install_index_test_content() {
 }
 
 /**
- * Create RP documentation test resources (Alpha, Beta, Gamma).
+ * Create RP documentation test resources (Alpha, Beta, Gamma, Delta).
  *
  * Alpha has full documentation (SSH, file transfer, storage, queues, datasets,
  * software). Beta is minimal (title + description only). Gamma is partial
- * (storage + support links, no login/transfer/queue data).
+ * (storage + support links, no login/transfer/queue data). Delta has one own
+ * storage row and nothing else; it belongs to "Test Inheritance Group", which
+ * supplies file transfer and datasets that Delta inherits.
  */
 function amp_dev_install_create_rp_docs_test_data() {
   amp_dev_install_create_rp_alpha();
   amp_dev_install_create_rp_beta();
   amp_dev_install_create_rp_gamma();
   amp_dev_install_create_rp_resource_group();
+  amp_dev_install_create_rp_inheritance_fixture();
   \Drupal::logger('amp_dev.install')->notice('Scaffolded RP documentation test data');
 }
 
@@ -1349,6 +1352,137 @@ function amp_dev_install_create_rp_resource_group() {
   $node->save();
 
   \Drupal::logger('amp_dev.install')->notice('Created Test Resource Group (nid: ' . $node->id() . ')');
+}
+
+/**
+ * Test Resource Delta — owns only storage; inherits the rest from its group.
+ *
+ * Delta has no login, file transfer, datasets, queue specs, or software of its
+ * own. Safe to re-run.
+ */
+function amp_dev_install_create_rp_delta() {
+  $resource_id = 'test-delta-9996';
+  $node = _amp_dev_find_resource($resource_id);
+
+  $storage = [
+    _amp_dev_create_paragraph('rp_storage_filesystem', [
+      'field_rp_directory' => 'Home',
+      'field_rp_fs_path' => '/home/<username>',
+      'field_rp_quota_size' => 10,
+      'field_rp_quota_inode_amount' => 500000,
+      'field_rp_purge' => 'None',
+      'field_rp_backup' => 'None',
+      'field_rp_fs_notes' => '',
+    ]),
+  ];
+
+  $values = [
+    'type' => 'access_active_resources_from_cid',
+    'title' => 'Test Resource Delta',
+    'status' => 1,
+    'field_cider_resource_id' => $resource_id,
+    'field_cider_short_name' => 'Delta',
+    'field_rp_display_name' => 'Delta Test System',
+    'field_access_global_resource_id' => 'delta.test.access-ci.org',
+    'field_cider_resource_type' => 'Compute',
+    'field_cider_latest_status' => 'production',
+    'field_access_org_name' => 'Delta Research Institute',
+    'field_rp_description' => [
+      'value' => '<p>Test Resource Delta documents only its own storage. File transfer and datasets come from its Resource Group, so it is used to test that populated_sections includes sections a member inherits.</p>',
+      'format' => 'full_html',
+    ],
+    'field_rp_listing' => TRUE,
+    'field_domain_access' => ['amp_cyberinfrastructure_org'],
+  ];
+
+  if ($node) {
+    _amp_dev_clear_paragraphs($node, ['field_rp_storage', 'field_rp_file_transfer', 'field_rp_datasets']);
+    foreach ($values as $key => $value) {
+      if ($key !== 'type') {
+        $node->set($key, $value);
+      }
+    }
+    $node->save();
+  }
+  else {
+    $node = Node::create($values);
+    $node->save();
+  }
+
+  _amp_dev_attach_paragraphs($node, 'field_rp_storage', $storage);
+  $node->save();
+
+  \Drupal::logger('amp_dev.install')->notice('Created Test Resource Delta (nid: ' . $node->id() . ')');
+}
+
+/**
+ * Test Inheritance Group — Delta is the only member.
+ *
+ * The group supplies a file transfer method and datasets text that Delta does
+ * not have, so the API's populated_sections for the group must include
+ * file_transfer and datasets purely through inheritance.
+ */
+function amp_dev_install_create_rp_inheritance_group() {
+  // Delete existing test group. Its paragraphs are left to the entity
+  // reference revisions orphan cleanup, as in the Test Resource Group.
+  $existing = \Drupal::entityTypeManager()
+    ->getStorage('node')
+    ->loadByProperties([
+      'type' => 'resource_group',
+      'title' => 'Test Inheritance Group',
+    ]);
+  foreach ($existing as $node) {
+    $node->delete();
+  }
+
+  $delta = _amp_dev_find_resource('test-delta-9996');
+  $resources = [];
+  if ($delta) {
+    $resources[] = ['target_id' => $delta->id()];
+  }
+
+  $node = Node::create([
+    'type' => 'resource_group',
+    'title' => 'Test Inheritance Group',
+    'status' => 1,
+    'field_rp_description' => [
+      'value' => '<p>A test resource group whose only member, Delta, inherits file transfer and datasets from the group.</p>',
+      'summary' => 'A test group for section inheritance.',
+      'format' => 'full_html',
+    ],
+    'field_cider_resources' => $resources,
+    'field_rp_listing' => TRUE,
+    'field_domain_access' => ['amp_cyberinfrastructure_org'],
+    'field_rp_datasets_text' => [
+      'value' => '<p>Group-wide datasets are available under /shared/datasets.</p>',
+      'format' => 'full_html',
+    ],
+  ]);
+  $node->save();
+
+  $file_transfers = [
+    _amp_dev_create_paragraph('rp_file_transfer_method', [
+      'field_rp_method' => 'Globus',
+      'field_rp_transfer_node' => 'dt.group.example.edu',
+      'field_rp_transfer_url' => ['uri' => 'https://app.globus.org', 'title' => 'Globus'],
+      'field_rp_recommended' => TRUE,
+    ]),
+  ];
+  _amp_dev_attach_paragraphs($node, 'field_rp_file_transfer', $file_transfers);
+  $node->save();
+
+  \Drupal::logger('amp_dev.install')->notice('Created Test Inheritance Group (nid: ' . $node->id() . ')');
+}
+
+/**
+ * Create the Delta resource and Test Inheritance Group.
+ *
+ * The Cypress resource-api spec calls this via drush php:eval so it does not
+ * depend on the nightly DB artifact. Both functions must stay safe to re-run.
+ */
+function amp_dev_install_create_rp_inheritance_fixture() {
+  amp_dev_install_create_rp_delta();
+  amp_dev_install_create_rp_inheritance_group();
 }
 
 /**
