@@ -1049,6 +1049,13 @@ function amp_dev_install_create_rp_alpha() {
     ['name' => 'amber', 'job_count' => 2449, 'description' => 'Amber is a suite of biomolecular simulation programs for molecular dynamics of proteins, nucleic acids, and carbohydrates.', 'research_field' => 'Biological Sciences', 'web_page' => 'https://ambermd.org/'],
   ]);
 
+  // Latest data day is yesterday; the 30 daily points end on it, ascending.
+  $metrics_last_data = date('Y-m-d', strtotime('-1 day'));
+  $metrics_daily_dates = [];
+  for ($i = 29; $i >= 0; $i--) {
+    $metrics_daily_dates[] = date('Y-m-d', strtotime("-$i days", strtotime($metrics_last_data)));
+  }
+
   $values = [
     'type' => 'access_active_resources_from_cid',
     'title' => 'Test Resource Alpha',
@@ -1116,9 +1123,11 @@ function amp_dev_install_create_rp_alpha() {
     // cpu-shared included but has no max_wall_time set.
     'field_rp_queue_metrics' => json_encode([
       'updated' => '2 hours ago',
+      'last_data' => $metrics_last_data,
       'queues' => [
         'debug' => [
           'job_count' => 5100,
+          'daily_dates' => $metrics_daily_dates,
           'wait_time' => 0.1,
           'wall_time' => 0.25,
           'daily_wait' => [0.05, 0.12, 0.08, 0.15, 0.09, 0.11, 0.07, 0.10, 0.13, 0.06, 0.14, 0.09, 0.12, 0.08, 0.10, 0.11, 0.07, 0.13, 0.09, 0.12, 0.08, 0.10, 0.14, 0.06, 0.11, 0.09, 0.12, 0.08, 0.10, 0.07],
@@ -1127,14 +1136,17 @@ function amp_dev_install_create_rp_alpha() {
         ],
         'gpu-standard' => [
           'job_count' => 1250,
+          'daily_dates' => $metrics_daily_dates,
           'wait_time' => 2.3,
           'wall_time' => 22.4,
-          'daily_wait' => [1.2, 2.1, 1.8, 2.5, 1.9, 2.2, 1.7, 2.0, 2.3, 1.5, 2.1, 1.9, 2.4, 2.2, 1.8, 2.0, 2.3, 2.1, 1.7, 2.2, 2.0, 1.8, 2.3, 2.1, 1.9, 2.2, 2.0, 1.8, 2.1, 1.9],
+          // One null day (no wait data) so the dev site exercises the sparkline gap path.
+          'daily_wait' => [1.2, 2.1, 1.8, 2.5, null, 2.2, 1.7, 2.0, 2.3, 1.5, 2.1, 1.9, 2.4, 2.2, 1.8, 2.0, 2.3, 2.1, 1.7, 2.2, 2.0, 1.8, 2.3, 2.1, 1.9, 2.2, 2.0, 1.8, 2.1, 1.9],
           // Normal case: usage stays below the 48h max, so the max line sits just above the trend's peak (~44h).
           'daily_wall' => [3.2, 18.5, 41.1, 9.8, 31.2, 2.6, 43.7, 15.4, 28.9, 6.0, 44.2, 12.8, 22.1, 38.3, 5.7, 33.1, 19.5, 42.6, 8.7, 25.2, 14.4, 40.1, 3.5, 29.6, 17.9, 39.7, 7.3, 21.8, 43.9, 11.5],
         ],
         'gpu-large' => [
           'job_count' => 380,
+          'daily_dates' => $metrics_daily_dates,
           'wait_time' => 4.5,
           'wall_time' => 71.6,
           'daily_wait' => [3.8, 4.2, 5.1, 4.7, 3.9, 4.4, 5.0, 4.3, 3.7, 4.6, 5.2, 4.1, 3.9, 4.8, 5.3, 4.0, 3.8, 4.5, 5.1, 4.2, 3.9, 4.7, 5.0, 4.3, 3.8, 4.5, 5.2, 4.1, 3.9, 4.6],
@@ -1143,6 +1155,7 @@ function amp_dev_install_create_rp_alpha() {
         ],
         'cpu-shared' => [
           'job_count' => 4200,
+          'daily_dates' => $metrics_daily_dates,
           'wait_time' => 0.8,
           'wall_time' => 5.4,
           'daily_wait' => [0.6, 0.7, 0.9, 0.8, 0.7, 0.8, 0.9, 0.7, 0.6, 0.8, 0.9, 0.7, 0.6, 0.8, 0.9, 0.8, 0.7, 0.8, 0.9, 0.7, 0.6, 0.8, 0.9, 0.7, 0.8, 0.8, 0.9, 0.7, 0.6, 0.8],
