@@ -924,133 +924,155 @@ function amp_dev_install_create_rp_alpha() {
     ]),
   ];
 
-  // Node types are entered once on the resource; queues point at them by
-  // label and carry the per-queue node count. Includes a mixed-GPU node.
+  // Node types are entered once on the resource, with their accelerators and
+  // the queues each one serves (with the per-queue node count). Queues carry
+  // only the queue-level attributes. Includes a mixed-GPU node, an Arm node
+  // and an FPGA node.
   $node_types = [
     _amp_dev_create_paragraph('rp_node_type', [
       'field_rp_node_type_label' => 'NVIDIA A100 (4 GPU)',
       'field_rp_cpus' => 'AMD EPYC 7763',
+      'field_rp_cpu_architecture' => 'x86_64',
       'field_rp_cpu_count' => 64,
-      'field_rp_vram' => 256,
-      'field_rp_node_gpus' => [
-        _amp_dev_create_paragraph('rp_node_gpu', [
-          'field_rp_gpus' => 'NVIDIA A100',
-          'field_rp_gpu_count' => 4,
-          'field_rp_gpu_vram' => 80,
-        ]),
+      'field_rp_node_ram' => 256,
+      'field_rp_accelerators' => [
+        _amp_dev_rp_accelerator('gpu', 'NVIDIA A100', 4, 80),
+      ],
+      'field_rp_node_type_queues' => [
+        _amp_dev_rp_node_type_queue('gpu-standard', 100),
       ],
     ]),
     _amp_dev_create_paragraph('rp_node_type', [
       'field_rp_node_type_label' => 'NVIDIA H100 (4 GPU)',
       'field_rp_cpus' => 'Intel Xeon Platinum 8480+',
+      'field_rp_cpu_architecture' => 'x86_64',
       'field_rp_cpu_count' => 112,
-      'field_rp_vram' => 2048,
-      'field_rp_node_gpus' => [
-        _amp_dev_create_paragraph('rp_node_gpu', [
-          'field_rp_gpus' => 'NVIDIA H100',
-          'field_rp_gpu_count' => 4,
-          'field_rp_gpu_vram' => 80,
-        ]),
+      'field_rp_node_ram' => 2048,
+      'field_rp_accelerators' => [
+        _amp_dev_rp_accelerator('gpu', 'NVIDIA H100', 4, 80),
+      ],
+      'field_rp_node_type_queues' => [
+        _amp_dev_rp_node_type_queue('gpu-standard', 25),
       ],
     ]),
     _amp_dev_create_paragraph('rp_node_type', [
       'field_rp_node_type_label' => 'NVIDIA A100 (8 GPU)',
       'field_rp_cpus' => 'AMD EPYC 7763',
+      'field_rp_cpu_architecture' => 'x86_64',
       'field_rp_cpu_count' => 128,
-      'field_rp_vram' => 512,
-      'field_rp_node_gpus' => [
-        _amp_dev_create_paragraph('rp_node_gpu', [
-          'field_rp_gpus' => 'NVIDIA A100',
-          'field_rp_gpu_count' => 8,
-          'field_rp_gpu_vram' => 80,
-        ]),
+      'field_rp_node_ram' => 512,
+      'field_rp_accelerators' => [
+        _amp_dev_rp_accelerator('gpu', 'NVIDIA A100', 8, 80),
+      ],
+      'field_rp_node_type_queues' => [
+        _amp_dev_rp_node_type_queue('gpu-large', 20),
       ],
     ]),
     _amp_dev_create_paragraph('rp_node_type', [
       'field_rp_node_type_label' => 'NVIDIA H100 (8 GPU)',
       'field_rp_node_type_description' => 'Full-node jobs on the newer H100 partition.',
       'field_rp_cpus' => 'Intel Xeon Platinum 8480+',
+      'field_rp_cpu_architecture' => 'x86_64',
       'field_rp_cpu_count' => 112,
-      'field_rp_vram' => 2048,
-      'field_rp_node_gpus' => [
-        _amp_dev_create_paragraph('rp_node_gpu', [
-          'field_rp_gpus' => 'NVIDIA H100',
-          'field_rp_gpu_count' => 8,
-          'field_rp_gpu_vram' => 80,
-        ]),
+      'field_rp_node_ram' => 2048,
+      'field_rp_accelerators' => [
+        _amp_dev_rp_accelerator('gpu', 'NVIDIA H100', 8, 80),
+      ],
+      'field_rp_node_type_queues' => [
+        _amp_dev_rp_node_type_queue('gpu-large', 16),
       ],
     ]),
     _amp_dev_create_paragraph('rp_node_type', [
       'field_rp_node_type_label' => 'NVIDIA A100 (debug)',
       'field_rp_cpus' => 'AMD EPYC 7763',
+      'field_rp_cpu_architecture' => 'x86_64',
       'field_rp_cpu_count' => 32,
-      'field_rp_vram' => 128,
-      'field_rp_node_gpus' => [
-        _amp_dev_create_paragraph('rp_node_gpu', [
-          'field_rp_gpus' => 'NVIDIA A100',
-          'field_rp_gpu_count' => 1,
-          'field_rp_gpu_vram' => 80,
-        ]),
+      'field_rp_node_ram' => 128,
+      'field_rp_accelerators' => [
+        _amp_dev_rp_accelerator('gpu', 'NVIDIA A100', 1, 80),
+      ],
+      'field_rp_node_type_queues' => [
+        _amp_dev_rp_node_type_queue('debug', 4),
       ],
     ]),
-    // CPU-only node: no GPU entries.
+    // CPU-only node: no accelerators.
     _amp_dev_create_paragraph('rp_node_type', [
       'field_rp_node_type_label' => 'CPU node',
       'field_rp_cpus' => 'Intel Xeon Platinum 8480+',
+      'field_rp_cpu_architecture' => 'x86_64',
       'field_rp_cpu_count' => 128,
-      'field_rp_vram' => 256,
+      'field_rp_node_ram' => 256,
+      'field_rp_node_type_queues' => [
+        _amp_dev_rp_node_type_queue('cpu-shared', 200),
+      ],
     ]),
-    // GPU without a per-node count (type + vRAM populated, count blank).
+    // GPU without a per-node count (model + memory populated, count blank).
     _amp_dev_create_paragraph('rp_node_type', [
       'field_rp_node_type_label' => 'NVIDIA H100 (cloud)',
       'field_rp_cpus' => 'AMD EPYC 9004',
+      'field_rp_cpu_architecture' => 'x86_64',
       'field_rp_cpu_count' => 32,
-      'field_rp_vram' => 384,
-      'field_rp_node_gpus' => [
-        _amp_dev_create_paragraph('rp_node_gpu', [
-          'field_rp_gpus' => 'NVIDIA H100',
-          'field_rp_gpu_vram' => 80,
-        ]),
+      'field_rp_node_ram' => 384,
+      'field_rp_accelerators' => [
+        _amp_dev_rp_accelerator('gpu', 'NVIDIA H100', NULL, 80),
+      ],
+      // Queue entry with no node count: unknown, not zero.
+      'field_rp_node_type_queues' => [
+        _amp_dev_rp_node_type_queue('gpu-cloud', NULL),
       ],
     ]),
     // Mixed-GPU node: two GPU models on one node.
     _amp_dev_create_paragraph('rp_node_type', [
       'field_rp_node_type_label' => 'AMD MI100 + MI210',
       'field_rp_cpus' => 'AMD EPYC 7763',
+      'field_rp_cpu_architecture' => 'x86_64',
       'field_rp_cpu_count' => 64,
-      'field_rp_vram' => 512,
-      'field_rp_node_gpus' => [
-        _amp_dev_create_paragraph('rp_node_gpu', [
-          'field_rp_gpus' => 'AMD MI100',
-          'field_rp_gpu_count' => 4,
-          'field_rp_gpu_vram' => 32,
-        ]),
-        _amp_dev_create_paragraph('rp_node_gpu', [
-          'field_rp_gpus' => 'AMD MI210',
-          'field_rp_gpu_count' => 4,
-          'field_rp_gpu_vram' => 64,
-        ]),
+      'field_rp_node_ram' => 512,
+      'field_rp_accelerators' => [
+        _amp_dev_rp_accelerator('gpu', 'AMD MI100', 4, 32),
+        _amp_dev_rp_accelerator('gpu', 'AMD MI210', 4, 64),
+      ],
+      'field_rp_node_type_queues' => [
+        _amp_dev_rp_node_type_queue('gpu-cloud', 8),
+      ],
+    ]),
+    // Arm CPU node, on the same queue as the x86_64 CPU node.
+    _amp_dev_create_paragraph('rp_node_type', [
+      'field_rp_node_type_label' => 'Arm node',
+      'field_rp_cpus' => 'Ampere Altra Max',
+      'field_rp_cpu_architecture' => 'arm',
+      'field_rp_cpu_count' => 128,
+      'field_rp_node_ram' => 512,
+      'field_rp_node_type_queues' => [
+        _amp_dev_rp_node_type_queue('cpu-shared', 40),
+      ],
+    ]),
+    // Non-GPU accelerator: FPGA cards. These never feed the deprecated
+    // queue_specs gpu_* fields.
+    _amp_dev_create_paragraph('rp_node_type', [
+      'field_rp_node_type_label' => 'FPGA node',
+      'field_rp_cpus' => 'AMD EPYC 7413',
+      'field_rp_cpu_architecture' => 'x86_64',
+      'field_rp_cpu_count' => 48,
+      'field_rp_node_ram' => 256,
+      'field_rp_accelerators' => [
+        _amp_dev_rp_accelerator('fpga', 'Xilinx Alveo U250', 2, 64),
+      ],
+      'field_rp_node_type_queues' => [
+        _amp_dev_rp_node_type_queue('fpga', 6),
       ],
     ]),
   ];
 
   $queues = [
-    // Multi-node-type queue: one purpose and wall time, two node types.
+    // Queue served by two node types: one purpose and wall time.
     _amp_dev_create_paragraph('rp_queue_spec', [
       'field_rp_queue_name' => 'gpu-standard',
       'field_rp_queue_purpose' => 'General purpose GPU jobs with up to 4 GPUs per node.',
       // 48-hour limit, stored in minutes.
       'field_rp_max_wall_time' => 2880,
-      'field_rp_queue_nodes' => [
-        _amp_dev_create_paragraph('rp_queue_node', [
-          'field_rp_queue_node_type' => 'NVIDIA A100 (4 GPU)',
-          'field_rp_node_count' => 100,
-        ]),
-        _amp_dev_create_paragraph('rp_queue_node', [
-          'field_rp_queue_node_type' => 'NVIDIA H100 (4 GPU)',
-          'field_rp_node_count' => 25,
-        ]),
-      ],
+      'field_rp_charged_per' => 'gpu',
+      'field_rp_queue_access' => 'batch',
     ]),
     _amp_dev_create_paragraph('rp_queue_spec', [
       'field_rp_queue_name' => 'gpu-large',
@@ -1059,16 +1081,8 @@ function amp_dev_install_create_rp_alpha() {
       // 30-day window ran longer, e.g. before the limit was lowered) — demonstrates
       // the trend crossing the max line.
       'field_rp_max_wall_time' => 7200,
-      'field_rp_queue_nodes' => [
-        _amp_dev_create_paragraph('rp_queue_node', [
-          'field_rp_queue_node_type' => 'NVIDIA A100 (8 GPU)',
-          'field_rp_node_count' => 20,
-        ]),
-        _amp_dev_create_paragraph('rp_queue_node', [
-          'field_rp_queue_node_type' => 'NVIDIA H100 (8 GPU)',
-          'field_rp_node_count' => 16,
-        ]),
-      ],
+      'field_rp_charged_per' => 'node',
+      'field_rp_queue_access' => 'by_request',
     ]),
     // Sub-hour wall-time limit: a 30-minute debug queue. Exercises fractional
     // hours in the API (0.5) and the minutes-aware "30m" chip in the theme.
@@ -1077,37 +1091,28 @@ function amp_dev_install_create_rp_alpha() {
       'field_rp_queue_purpose' => 'Short-turnaround queue for interactive debugging and quick test runs.',
       // 30 minutes.
       'field_rp_max_wall_time' => 30,
-      'field_rp_queue_nodes' => [
-        _amp_dev_create_paragraph('rp_queue_node', [
-          'field_rp_queue_node_type' => 'NVIDIA A100 (debug)',
-          'field_rp_node_count' => 4,
-        ]),
-      ],
+      'field_rp_charged_per' => 'gpu',
+      'field_rp_queue_access' => 'interactive',
     ]),
+    // No wall-time limit; charged per core; no access restriction recorded.
     _amp_dev_create_paragraph('rp_queue_spec', [
       'field_rp_queue_name' => 'cpu-shared',
       'field_rp_queue_purpose' => 'CPU-only shared partition for serial and small parallel jobs.',
-      'field_rp_queue_nodes' => [
-        _amp_dev_create_paragraph('rp_queue_node', [
-          'field_rp_queue_node_type' => 'CPU node',
-          'field_rp_node_count' => 200,
-        ]),
-      ],
+      'field_rp_charged_per' => 'core',
     ]),
-    // Exercises "GPU without a per-node count" and "unknown node count"
-    // (node_count omitted -> em-dash, not 0), plus the mixed-GPU node type.
+    // Exercises "unknown node count" (the H100 queue entry has no count ->
+    // null, not 0), the mixed-GPU node type, and a queue with no charge or
+    // access set (both null in the API).
     _amp_dev_create_paragraph('rp_queue_spec', [
       'field_rp_queue_name' => 'gpu-cloud',
       'field_rp_queue_purpose' => 'Elastic GPU partition; per-node counts vary and are not reported.',
-      'field_rp_queue_nodes' => [
-        _amp_dev_create_paragraph('rp_queue_node', [
-          'field_rp_queue_node_type' => 'NVIDIA H100 (cloud)',
-        ]),
-        _amp_dev_create_paragraph('rp_queue_node', [
-          'field_rp_queue_node_type' => 'AMD MI100 + MI210',
-          'field_rp_node_count' => 8,
-        ]),
-      ],
+    ]),
+    // Served only by the FPGA node type.
+    _amp_dev_create_paragraph('rp_queue_spec', [
+      'field_rp_queue_name' => 'fpga',
+      'field_rp_queue_purpose' => 'FPGA development and acceleration jobs.',
+      'field_rp_charged_per' => 'node',
+      'field_rp_queue_access' => 'by_request',
     ]),
   ];
 
@@ -1304,7 +1309,37 @@ function amp_dev_install_create_rp_beta() {
     'field_domain_access' => ['amp_cyberinfrastructure_org'],
   ];
 
+  // Legacy-shaped queue rows (D8-3090): hardware is filled in on the queue
+  // rows themselves and the resource has no node types. This covers the
+  // fallback in the API and aspTheme for resources not yet migrated to the
+  // node-type model. Do not add node types to Beta.
+  $queues = [
+    _amp_dev_create_paragraph('rp_queue_spec', [
+      'field_rp_queue_name' => 'batch',
+      'field_rp_queue_purpose' => 'General purpose CPU jobs.',
+      'field_rp_cpus' => 'AMD EPYC 7543',
+      'field_rp_cpu_count' => 64,
+      'field_rp_vram' => 256,
+      'field_rp_node_count' => 120,
+      // 24-hour limit, stored in minutes.
+      'field_rp_max_wall_time' => 1440,
+    ]),
+    _amp_dev_create_paragraph('rp_queue_spec', [
+      'field_rp_queue_name' => 'gpu',
+      'field_rp_queue_purpose' => 'GPU jobs.',
+      'field_rp_cpus' => 'AMD EPYC 7543',
+      'field_rp_cpu_count' => 32,
+      'field_rp_gpus' => 'NVIDIA A40',
+      'field_rp_gpu_count' => 2,
+      'field_rp_gpu_vram' => 48,
+      'field_rp_vram' => 128,
+      'field_rp_node_count' => 10,
+      'field_rp_max_wall_time' => 720,
+    ]),
+  ];
+
   if ($node) {
+    _amp_dev_clear_paragraphs($node, ['field_rp_queue_specs', 'field_rp_node_types']);
     foreach ($values as $key => $value) {
       if ($key !== 'type') {
         $node->set($key, $value);
@@ -1316,6 +1351,8 @@ function amp_dev_install_create_rp_beta() {
     $node = Node::create($values);
     $node->save();
   }
+  _amp_dev_attach_paragraphs($node, 'field_rp_queue_specs', $queues);
+  $node->save();
 
   \Drupal::logger('amp_dev.install')->notice('Created Test Resource Beta (nid: ' . $node->id() . ')');
 }
@@ -1659,6 +1696,28 @@ function _amp_dev_create_paragraph($type, array $fields) {
     $values[$field_name] = $value;
   }
   return Paragraph::create($values);
+}
+
+/**
+ * Create an unsaved rp_accelerator paragraph.
+ */
+function _amp_dev_rp_accelerator($type, $model, $count, $memory) {
+  return _amp_dev_create_paragraph('rp_accelerator', [
+    'field_rp_accelerator_type' => $type,
+    'field_rp_accelerator_model' => $model,
+    'field_rp_accelerator_count' => $count,
+    'field_rp_accelerator_memory' => $memory,
+  ]);
+}
+
+/**
+ * Create an unsaved rp_node_type_queue paragraph (a queue a node type serves).
+ */
+function _amp_dev_rp_node_type_queue($queue_name, $node_count) {
+  return _amp_dev_create_paragraph('rp_node_type_queue', [
+    'field_rp_queue_name' => $queue_name,
+    'field_rp_node_count' => $node_count,
+  ]);
 }
 
 /**

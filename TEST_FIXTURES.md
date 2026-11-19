@@ -209,3 +209,10 @@ describe('project submission delete — as a manager', () => {
 
 The account is created by `amp_dev_install_create_test_users()` in
 `amp_dev.install`, alongside the other shared test users.
+
+## RP Queue and Node Type Fixtures (D8-3090)
+
+- Test Resource Alpha uses the node-type model: node types carry `field_rp_cpu_architecture`, `field_rp_node_ram`, accelerators (`rp_accelerator`) and the queues they serve (`rp_node_type_queue`); queues (`rp_queue_spec`) carry `field_rp_charged_per` and `field_rp_queue_access`. It includes a mixed-GPU node, an Arm node (`Arm node`) and an FPGA node (`FPGA node`, served by the `fpga` queue).
+- Test Resource Beta is deliberately legacy-shaped: two queue rows (`batch`, `gpu`) with the old hardware fields filled and no node types. It covers the fallback in the API and aspTheme. Do not add node types to it.
+
+Both are re-applied in place, and safe to re-run, by `amp_dev_install_create_rp_alpha()` and `amp_dev_install_create_rp_beta()`. On an existing site run `ddev drush php:eval 'require_once DRUPAL_ROOT . "/" . \Drupal::service("extension.list.module")->getPath("amp_dev") . "/amp_dev.install"; amp_dev_install_create_rp_alpha(); amp_dev_install_create_rp_beta();'` after importing the new config.
